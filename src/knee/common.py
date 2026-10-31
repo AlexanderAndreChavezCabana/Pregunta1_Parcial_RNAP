@@ -5,20 +5,24 @@ DEFAULT_DATA_DIR = "/kaggle/input/competitions/rsna-knee-abnormality-detection"
 
 
 def resolve_data_dir(path):
-    """Devuelve la carpeta que contiene train.csv y train_series.csv.
+    """Devuelve la carpeta que contiene los CSV y las series DICOM de entrenamiento.
 
     Si `path` no los contiene, los busca bajo /kaggle/input
     (Kaggle puede montar la competencia en rutas distintas).
     """
-    if os.path.isfile(os.path.join(path, "train_series.csv")):
+    if (os.path.isfile(os.path.join(path, "train.csv"))
+            and os.path.isfile(os.path.join(path, "train_series.csv"))
+            and os.path.isdir(os.path.join(path, "train_series"))):
         return path
     for root, dirs, files in os.walk("/kaggle/input"):
-        if "train_series.csv" in files and "train.csv" in files:
+        if ("train_series.csv" in files and "train.csv" in files
+                and "train_series" in dirs):
             print(f"AVISO: datos no encontrados en {path}; se usan los de {root}")
             return root
         dirs[:] = [d for d in dirs if d not in ("train_series", "test_series")]
     raise FileNotFoundError(
-        f"No se encontró train_series.csv en {path} ni bajo /kaggle/input. "
+        f"No se encontraron train.csv, train_series.csv y train_series/ en {path} "
+        "ni bajo /kaggle/input. "
         "¿Está añadida la competencia como Input?")
 
 
@@ -41,7 +45,7 @@ def find_file(name, local_path, search_root="/kaggle/input"):
     bajo /kaggle/input: así un notebook puede reutilizar la salida de otro notebook
     añadida como Input, sin repetir pasos costosos (p. ej. la traducción).
     """
-    if os.path.exists(local_path):
+    if os.path.isfile(local_path):
         return local_path
     skip = {"train_series", "test_series", "train_images", "test_images"}
     if os.path.isdir(search_root):

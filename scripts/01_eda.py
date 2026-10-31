@@ -16,33 +16,16 @@ import pandas as pd
 import pydicom
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from knee.common import DEFAULT_DATA_DIR, resolve_data_dir  # noqa: E402
 from knee.labels import LABELS  # noqa: E402
 
 
 def parse_args():
     p = argparse.ArgumentParser(description="EDA del dataset RSNA Knee")
-    p.add_argument("--data_dir", default="/kaggle/input/competitions/rsna-knee-abnormality-detection")
+    p.add_argument("--data_dir", default=DEFAULT_DATA_DIR)
     p.add_argument("--out_dir", default="outputs/eda")
     p.add_argument("--n_series_sample", type=int, default=300)
     return p.parse_args()
-
-
-def resolve_data_dir(path):
-    """Devuelve la carpeta que contiene train.csv y train_series.csv.
-
-    Si `path` no existe o no los contiene, los busca bajo /kaggle/input
-    (Kaggle puede montar la competencia en rutas distintas).
-    """
-    if os.path.isfile(os.path.join(path, "train_series.csv")):
-        return path
-    for root, dirs, files in os.walk("/kaggle/input"):
-        if "train_series.csv" in files and "train.csv" in files:
-            print(f"AVISO: datos no encontrados en {path}; se usan los de {root}")
-            return root
-        dirs[:] = [d for d in dirs if d not in ("train_series", "test_series")]
-    raise FileNotFoundError(
-        f"No se encontró train_series.csv en {path} ni bajo /kaggle/input. "
-        "¿Está añadida la competencia como Input?")
 
 
 def safe_lang(text):

@@ -85,6 +85,16 @@ El mismo comando de arriba, sin `--quick`, reproduce los resultados del informe:
 En una GPU T4 de Kaggle toma varias horas; lo más costoso son la traducción y los seis
 entrenamientos (el preprocesamiento tarda unos 4 min).
 
+## Problemas frecuentes
+
+- **No se encuentran los datos:** añade la competencia como *Input* y comprueba que la carpeta
+  contenga `train.csv`, `train_series.csv` y `train_series/`. Si están en otra ruta, pásala a
+  `run_all.sh`.
+- **Falta un archivo generado en una corrida por tramos:** añade como *Input* la salida del notebook
+  del tramo anterior; los scripts buscan esos archivos bajo `/kaggle/input`.
+- **Falla la descarga de modelos:** activa *Internet* en la configuración del notebook; se necesita
+  para descargar NLLB-200 y los pesos de ResNet-50.
+
 <details>
 <summary>Si una sola sesión no alcanza (límite de 12 h de Kaggle)</summary>
 
@@ -132,8 +142,8 @@ notebooks/          P1_ejecucion_kaggle.ipynb: notebook para importar en Kaggle 
 requirements.txt    dependencias
 scripts/            un script por paso del pipeline (01 … 10) y run_experiments.sh
 src/knee/           código propio: etiquetas, glosario, extractor, dataset, modelos, pérdidas, métricas
-tools/              vocab_mining.py (diagnóstico sin etiquetas)
-tests/              pruebas del extractor y del glosario con frases sintéticas
+tools/              vocab_mining.py (diagnóstico sin etiquetas) y plot_architecture.py (diagrama)
+tests/              pruebas de utilidades, extractor y glosario con datos sintéticos
 outputs/            resultados generados (no se versionan)
 ```
 
@@ -183,7 +193,11 @@ hallazgo elegido en validación.
 
 ## Pruebas
 
+Ejecutar desde la raíz del repositorio. Son pruebas sintéticas; no necesitan los datos de la
+competencia ni una GPU:
+
 ```bash
+python tests/test_common.py
 python tests/test_extractor.py
 python tests/test_glossary.py
 ```
