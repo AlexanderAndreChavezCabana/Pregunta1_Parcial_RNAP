@@ -133,7 +133,7 @@ requirements.txt    dependencias
 scripts/            un script por paso del pipeline (01 … 10) y run_experiments.sh
 src/knee/           código propio: etiquetas, glosario, extractor, dataset, modelos, pérdidas, métricas
 tools/              vocab_mining.py (diagnóstico sin etiquetas) y plot_architecture.py (diagrama)
-tests/              pruebas del extractor y del glosario con frases sintéticas
+tests/              pruebas de utilidades, extractor y glosario con datos sintéticos
 outputs/            resultados generados (no se versionan)
 ```
 
@@ -179,7 +179,11 @@ hallazgo elegido en validación.
 
 ## Pruebas
 
+Ejecutar desde la raíz del repositorio. Son pruebas sintéticas; no necesitan los datos de la
+competencia ni una GPU:
+
 ```bash
+python tests/test_common.py
 python tests/test_extractor.py
 python tests/test_glossary.py
 ```

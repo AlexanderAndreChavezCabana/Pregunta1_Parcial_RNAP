@@ -10,7 +10,8 @@ def resolve_data_dir(path):
     Si `path` no los contiene, los busca bajo /kaggle/input
     (Kaggle puede montar la competencia en rutas distintas).
     """
-    if os.path.isfile(os.path.join(path, "train_series.csv")):
+    if (os.path.isfile(os.path.join(path, "train.csv"))
+            and os.path.isfile(os.path.join(path, "train_series.csv"))):
         return path
     for root, dirs, files in os.walk("/kaggle/input"):
         if "train_series.csv" in files and "train.csv" in files:
@@ -18,7 +19,7 @@ def resolve_data_dir(path):
             return root
         dirs[:] = [d for d in dirs if d not in ("train_series", "test_series")]
     raise FileNotFoundError(
-        f"No se encontró train_series.csv en {path} ni bajo /kaggle/input. "
+        f"No se encontraron train.csv y train_series.csv en {path} ni bajo /kaggle/input. "
         "¿Está añadida la competencia como Input?")
 
 
