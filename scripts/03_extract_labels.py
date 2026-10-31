@@ -33,6 +33,10 @@ def parse_args():
 def main():
     args = parse_args()
     rep = pd.read_csv(args.reports)
+    required = {"StudyInstanceUID", "lang", "report_en"}
+    missing = required.difference(rep.columns)
+    if missing:
+        raise ValueError(f"Faltan columnas requeridas en {args.reports}: {sorted(missing)}")
     rep["report_en"] = rep["report_en"].fillna("").astype(str)
 
     rows = []
@@ -46,7 +50,7 @@ def main():
             row[f"{lab}__conf"] = STATUS_TO_CONF[st[lab]]
         rows.append(row)
     out = pd.DataFrame(rows)
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     out.to_csv(args.out, index=False)
 
     dist = pd.DataFrame({lab: out[f"{lab}__status"].value_counts() for lab in LABELS}).T

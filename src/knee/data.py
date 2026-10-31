@@ -11,6 +11,8 @@ from torch.utils.data import Dataset
 
 def augment(vol, rng):
     """Misma transformación para todos los cortes del estudio."""
+    if vol.ndim != 3 or any(size == 0 for size in vol.shape):
+        raise ValueError(f"Se esperaba un volumen [S, H, W]; se recibió {vol.shape}.")
     s, h, w = vol.shape
     if rng.random() < 0.5:           # invertir el orden de cortes ~ rodilla izquierda/derecha
         vol = vol[::-1]
@@ -28,9 +30,15 @@ def augment(vol, rng):
 
 class KneeStudyDataset(Dataset):
     def __init__(self, volumes, rows, targets, n_pos=16, train=False):
+        if n_pos < 1:
+            raise ValueError("n_pos debe ser al menos 1.")
         self.vol = volumes
         self.rows = np.asarray(rows)
         self.targets = np.asarray(targets, dtype=np.float32)
+        if self.targets.ndim != 2:
+            raise ValueError(f"targets debe ser una matriz [N, etiquetas]; se recibió {self.targets.shape}.")
+        if len(self.rows) != len(self.targets):
+            raise ValueError("rows y targets deben tener la misma cantidad de estudios.")
         self.n_pos = n_pos
         self.train = train
         self.rng = np.random.default_rng()
@@ -40,6 +48,8 @@ class KneeStudyDataset(Dataset):
 
     def __getitem__(self, i):
         vol = np.asarray(self.vol[self.rows[i]], dtype=np.float32) / 255.0
+        if vol.ndim != 3 or any(size == 0 for size in vol.shape):
+            raise ValueError(f"El volumen del estudio debe tener forma [S, H, W] no vacía; se recibió {vol.shape}.")
         if self.train:
             vol = augment(vol, self.rng)
         s = vol.shape[0]

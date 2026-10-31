@@ -77,6 +77,10 @@ def segment_report(text):
 
 def main():
     args = parse_args()
+    if args.batch_size < 1 or args.num_beams < 1:
+        raise SystemExit("--batch_size y --num_beams deben ser al menos 1.")
+    if args.limit < 0:
+        raise SystemExit("--limit debe ser mayor o igual a 0.")
     out_csv = os.path.join(args.out_dir, "reports_en.csv")
     if os.path.exists(out_csv) and not args.force:
         print(f"{out_csv} ya existe: se omite la traducción (usar --force para rehacerla).")

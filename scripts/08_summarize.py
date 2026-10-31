@@ -67,7 +67,8 @@ def main():
         found[os.path.basename(os.path.dirname(path))] = path
     os.makedirs(args.runs_dir, exist_ok=True)
     for name in sorted(found):
-        m = json.load(open(found[name]))
+        with open(found[name], encoding="utf-8") as f:
+            m = json.load(f)
         rows.append({"run": m["run"], **m["config"], "best_epoch": m["best_epoch"],
                      "val_macro_auc": round(m["val_macro_auc"], 4),
                      "test_macro_auc": round(m["test_macro_auc"], 4),

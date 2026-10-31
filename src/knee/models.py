@@ -60,6 +60,10 @@ class TimmEncoder(nn.Module):
 class StudyModel(nn.Module):
     def __init__(self, encoder, n_labels=12, pool="attn", hidden=128, dropout=0.3, imagenet_norm=True):
         super().__init__()
+        if pool not in {"attn", "max", "mean"}:
+            raise ValueError(f"Pooling desconocido: {pool!r}. Opciones válidas: 'attn', 'max', 'mean'.")
+        if n_labels < 1:
+            raise ValueError("n_labels debe ser al menos 1.")
         self.encoder = encoder
         self.pool = pool
         self.n_labels = n_labels
@@ -80,6 +84,8 @@ class StudyModel(nn.Module):
 
     def slice_features(self, x):
         """x [B, P, 3, H, W] -> mapas [B*P, d, h, w] y vectores [B, P, d]."""
+        if x.ndim != 5 or x.shape[2] != 3 or x.shape[0] == 0 or x.shape[1] == 0:
+            raise ValueError(f"Se esperaba una entrada [B, P, 3, H, W]; se recibió {tuple(x.shape)}.")
         b, p = x.shape[:2]
         x = (x.flatten(0, 1) - self.mean) / self.std
         fmap = self.encoder(x)

@@ -2,6 +2,7 @@
 # Comando único del proyecto (Pregunta 1).
 #
 #   bash run_all.sh [--quick] [DATA_DIR]
+#   bash run_all.sh --help
 #
 #   (sin opciones)  corrida completa: reproduce los resultados del informe.
 #                   Kaggle, GPU T4, ~varias horas (traducción + 6 entrenamientos).
@@ -14,10 +15,27 @@ set -euo pipefail
 
 QUICK=0
 DATA_DIR="/kaggle/input/competitions/rsna-knee-abnormality-detection"
+DATA_DIR_SET=0
 for arg in "$@"; do
   case "$arg" in
     --quick) QUICK=1 ;;
-    *) DATA_DIR="$arg" ;;
+    -h|--help)
+      sed -n '2,13p' "$0"
+      exit 0
+      ;;
+    -*)
+      echo "Opción desconocida: $arg" >&2
+      echo "Uso: bash run_all.sh [--quick] [DATA_DIR]" >&2
+      exit 2
+      ;;
+    *)
+      if [ "$DATA_DIR_SET" -eq 1 ]; then
+        echo "Solo se permite una ruta DATA_DIR." >&2
+        exit 2
+      fi
+      DATA_DIR="$arg"
+      DATA_DIR_SET=1
+      ;;
   esac
 done
 cd "$(dirname "$0")"

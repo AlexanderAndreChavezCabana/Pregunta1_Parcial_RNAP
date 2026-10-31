@@ -124,6 +124,14 @@ def plot_case(img, cam, att, label, uid_short, prob, path):
 
 def main():
     args = parse_args()
+    if args.n_cases < 1:
+        raise SystemExit("--n_cases debe ser al menos 1.")
+    labels = LABELS if args.labels.strip().lower() == "all" else [l.strip() for l in args.labels.split(",") if l.strip()]
+    if not labels:
+        raise SystemExit("--labels debe incluir al menos una etiqueta o el valor 'all'.")
+    unknown = sorted(set(labels).difference(LABELS))
+    if unknown:
+        raise SystemExit(f"Etiquetas desconocidas: {unknown}. Revisa --labels.")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     run_dir = find_run_dir(args.run, args.runs_dir)
     cfg = json.load(open(os.path.join(run_dir, "config.json")))
@@ -181,7 +189,6 @@ def main():
             raise SystemExit(f"Capa '{args.layer}' no existe. Opciones: {[k for k in mods if k.count('.') == 0 and k]}")
         layer = mods[args.layer]
         print(f"Grad-CAM sobre la capa '{args.layer}'")
-    labels = LABELS if args.labels.strip().lower() == "all" else [l.strip() for l in args.labels.split(",") if l.strip()]
     for lab in labels:
         j = LABELS.index(lab)
         pos = test[test[f"{lab}__gold"] == 1].sort_values(f"{lab}__p", ascending=False).head(args.n_cases)

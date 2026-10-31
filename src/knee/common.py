@@ -25,10 +25,12 @@ def resolve_data_dir(path):
 def detect_language(text):
     """Código ISO 639-1 del idioma del reporte ('na' si es muy corto)."""
     from langdetect import DetectorFactory, detect
+    from langdetect.lang_detect_exception import LangDetectException
+
     DetectorFactory.seed = 0
     try:
         return detect(text) if isinstance(text, str) and len(text.strip()) > 20 else "na"
-    except Exception:
+    except LangDetectException:
         return "err"
 
 

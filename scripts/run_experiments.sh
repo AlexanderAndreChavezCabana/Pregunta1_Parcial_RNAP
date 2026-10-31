@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Experimentos de la Pregunta 1 (E2 modelos, E4 ablaciones, E6 desbalance). Requiere GPU.
 # Cada experimento sigue aunque otro falle; al final se resume todo.
+set -u
 cd "$(dirname "$0")/.."
 EXTRA="$*"   # p. ej. --epochs 1 --limit 20 para una prueba rápida
 

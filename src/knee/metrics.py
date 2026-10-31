@@ -5,7 +5,17 @@ import numpy as np
 from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 
 
+def _validate_arrays(y, p):
+    y, p = np.asarray(y), np.asarray(p)
+    if y.ndim != 2 or p.shape != y.shape:
+        raise ValueError(f"y y p deben ser matrices 2D con la misma forma; se recibió {y.shape} y {p.shape}.")
+    if y.shape[0] == 0 or y.shape[1] == 0:
+        raise ValueError("Se requiere al menos un estudio y una etiqueta para calcular métricas.")
+    return y, p
+
+
 def auc_per_label(y, p):
+    y, p = _validate_arrays(y, p)
     out = []
     for j in range(y.shape[1]):
         yj = y[:, j]
@@ -15,6 +25,9 @@ def auc_per_label(y, p):
 
 def bootstrap_auc(y, p, n_boot=1000, seed=0):
     """IC 95 % por remuestreo de estudios (percentiles). Devuelve (lo, hi) por etiqueta y macro."""
+    y, p = _validate_arrays(y, p)
+    if n_boot < 1:
+        raise ValueError("n_boot debe ser al menos 1.")
     rng = np.random.default_rng(seed)
     n = len(y)
     per, macro = [], []
@@ -32,6 +45,10 @@ def bootstrap_auc(y, p, n_boot=1000, seed=0):
 
 def best_f1_thresholds(y, p, grid=np.linspace(0.05, 0.95, 91)):
     """Umbral por etiqueta que maximiza F1 (se elige en validación, nunca en test)."""
+    y, p = _validate_arrays(y, p)
+    grid = np.asarray(grid)
+    if grid.ndim != 1 or grid.size == 0:
+        raise ValueError("grid debe ser una secuencia no vacía de umbrales.")
     th = []
     for j in range(y.shape[1]):
         if y[:, j].sum() == 0:
@@ -43,6 +60,10 @@ def best_f1_thresholds(y, p, grid=np.linspace(0.05, 0.95, 91)):
 
 
 def prf_at(y, p, th):
+    y, p = _validate_arrays(y, p)
+    th = np.asarray(th)
+    if th.ndim > 1 or (th.ndim == 1 and th.size != y.shape[1]):
+        raise ValueError(f"th debe ser escalar o tener {y.shape[1]} umbrales.")
     pred = p >= th
     rows = []
     for j in range(y.shape[1]):

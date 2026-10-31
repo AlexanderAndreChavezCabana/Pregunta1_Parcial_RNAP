@@ -63,6 +63,8 @@ def tokens(text):
 
 def main():
     args = parse_args()
+    if args.window < 1 or args.min_count < 1 or args.top < 1:
+        raise SystemExit("--window, --min_count y --top deben ser al menos 1.")
     data_dir = resolve_data_dir(args.data_dir)
     train = pd.read_csv(os.path.join(data_dir, "train.csv"), usecols=["StudyInstanceUID"] + LABELS)
     gold_ids = set(train.loc[train[LABELS].notna().all(axis=1), "StudyInstanceUID"])
@@ -110,7 +112,7 @@ def main():
             lines.append(", ".join(f"{g}({c})" for g, c in top) or "(nada frecuente)")
     text = "\n".join(lines)
     print(text)
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w") as f:
         f.write(text)
 

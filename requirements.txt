@@ -1,9 +1,12 @@
+# Entrenamiento y procesamiento de datos
 torch>=2.1
 torchvision>=0.16
 timm>=0.9
 numpy
 pandas
 scikit-learn
+
+# Visualización y lectura de DICOM
 matplotlib
 tqdm
 pyyaml
@@ -13,6 +16,8 @@ pylibjpeg-libjpeg
 pylibjpeg-openjpeg
 python-gdcm
 opencv-python-headless
+
+# Idiomas y traducción local
 langdetect
 transformers>=4.40
 sentencepiece

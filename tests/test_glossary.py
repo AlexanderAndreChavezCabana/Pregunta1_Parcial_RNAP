@@ -33,5 +33,15 @@ for lang, text, expected in CASES:
     if missing:
         fails += 1
         print(f"FALLA [{lang}]: {out!r} -> falta {missing}")
-print(f"{len(CASES) - fails}/{len(CASES)} casos correctos")
+if apply_glossary("texto sin reglas", "xx") != "texto sin reglas":
+    print("FALLA: un idioma sin glosario debe conservar el texto")
+    fails += 1
+try:
+    apply_glossary(None, "en")
+except TypeError:
+    pass
+else:
+    print("FALLA: el glosario debe rechazar entradas que no sean texto")
+    fails += 1
+print(f"{len(CASES) + 2 - fails}/{len(CASES) + 2} casos correctos")
 sys.exit(1 if fails else 0)

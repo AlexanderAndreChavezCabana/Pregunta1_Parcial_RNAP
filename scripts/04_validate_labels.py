@@ -33,6 +33,8 @@ def parse_args():
 
 
 def metrics(y, p):
+    if len(y) == 0 or len(y) != len(p):
+        raise ValueError("Se requiere la misma cantidad no vacía de etiquetas gold y predicciones.")
     both_const = len(set(y)) == 1 and len(set(p)) == 1
     return {
         "acuerdo": float(np.mean(y == p)),
@@ -51,6 +53,8 @@ def main():
     weak = pd.read_csv(args.weak)
     df = gold.merge(weak, on="StudyInstanceUID", suffixes=("_gold", ""))
     print(f"Estudios gold con etiqueta débil: {len(df)} / {len(gold)}")
+    if df.empty:
+        raise ValueError("No hay estudios gold emparejados con etiquetas débiles para validar.")
 
     rows, disagreements = [], []
     for lab in LABELS:

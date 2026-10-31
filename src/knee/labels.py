@@ -26,3 +26,6 @@ LABELS_ES = {
     "Effusion": "Derrame", "Synovitis": "Sinovitis", "Baker's": "Quiste de Baker",
     "Contusion": "Contusión ósea", "Fracture": "Fractura",
 }
+
+if set(LABELS_ES) != set(LABELS):
+    raise ValueError("LABELS_ES debe contener exactamente las etiquetas definidas en LABELS.")

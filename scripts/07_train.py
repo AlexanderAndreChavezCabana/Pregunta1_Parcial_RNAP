@@ -83,6 +83,10 @@ def predict(model, loader, device, tta=False):
 
 def main():
     args = parse_args()
+    if args.epochs < 1 or args.patience < 1 or args.n_pos < 1 or args.bs < 0:
+        raise SystemExit("--epochs, --patience y --n_pos deben ser positivos; --bs no puede ser negativo.")
+    if args.workers < 0 or args.limit < 0 or args.wd < 0 or args.lr < 0:
+        raise SystemExit("--workers, --limit, --wd y --lr no pueden ser negativos.")
     set_seed(args.seed)
     pretrained = args.model != "scratch" and not args.no_pretrained
     bs = args.bs or (8 if args.model == "scratch" else 4)
@@ -103,6 +107,9 @@ def main():
         df = df.groupby("split", group_keys=False).head(args.limit)
     parts = {s: df[df.split == s].reset_index(drop=True) for s in ("train", "val", "test")}
     print("Estudios:", {k: len(v) for k, v in parts.items()})
+    empty_parts = [name for name, part in parts.items() if part.empty]
+    if empty_parts:
+        raise ValueError(f"No hay estudios utilizables en estas particiones: {empty_parts}.")
 
     soft_cols = [f"{l}__soft" for l in LABELS] if args.labels == "soft" else LABELS
     y_train = parts["train"][soft_cols].to_numpy(np.float32)
@@ -116,12 +123,17 @@ def main():
     if pw is not None:
         print("pos_weight:", dict(zip(LABELS, np.round(pw, 2))))
 
-    mk = lambda part, y, train: DataLoader(  # noqa: E731
-        KneeStudyDataset(vols, parts[part].row.values, y, args.n_pos, train=train),
-        batch_size=bs, shuffle=train, drop_last=train, num_workers=args.workers,
-        pin_memory=device.type == "cuda", worker_init_fn=worker_init_fn,
-        persistent_workers=args.workers > 0)
-    dl_train, dl_val, dl_test = mk("train", y_train, True), mk("val", y_val, False), mk("test", y_test, False)
+    def make_loader(part, y, train):
+        dataset = KneeStudyDataset(vols, parts[part].row.values, y, args.n_pos, train=train)
+        return DataLoader(
+            dataset, batch_size=bs, shuffle=train,
+            drop_last=train and len(dataset) > bs, num_workers=args.workers,
+            pin_memory=device.type == "cuda", worker_init_fn=worker_init_fn,
+            persistent_workers=args.workers > 0)
+
+    dl_train = make_loader("train", y_train, True)
+    dl_val = make_loader("val", y_val, False)
+    dl_test = make_loader("test", y_test, False)
 
     # ---------------- modelo
     model = build_model(args.model, len(LABELS), args.pool, pretrained).to(device)

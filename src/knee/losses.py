@@ -22,6 +22,8 @@ class FocalLoss(nn.Module):
 
     def __init__(self, gamma=2.0, pos_weight=None):
         super().__init__()
+        if gamma < 0:
+            raise ValueError("gamma debe ser mayor o igual a 0.")
         self.gamma = gamma
         self.register_buffer("pos_weight", pos_weight if pos_weight is not None else None)
 
@@ -33,4 +35,8 @@ class FocalLoss(nn.Module):
 
 
 def build_loss(name, pos_weight=None, gamma=2.0):
-    return FocalLoss(gamma, pos_weight) if name == "focal" else BCELoss(pos_weight)
+    if name == "bce":
+        return BCELoss(pos_weight)
+    if name == "focal":
+        return FocalLoss(gamma, pos_weight)
+    raise ValueError(f"Pérdida desconocida: {name!r}. Opciones válidas: 'bce', 'focal'.")

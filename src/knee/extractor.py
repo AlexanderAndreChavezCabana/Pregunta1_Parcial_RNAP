@@ -256,6 +256,7 @@ def _part_status(sentence, lo, hi, right, strong, weak, left=None):
 
 
 def extract_sentence(sentence):
+    """Clasifica las menciones de una oración, devolviendo un estado por etiqueta."""
     out = {lab: NM for lab in LABELS}
     # --- etiquetas de estructura
     mentions = _mentions(sentence)
@@ -302,7 +303,10 @@ def extract_sentence(sentence):
 
 def iter_sentences(text):
     """Oraciones del reporte; las que no nombran ninguna estructura heredan el
-    encabezado previo terminado en ':' (p. ej. "Medial meniscus:" en su propia línea)."""
+    encabezado previo terminado en ':' (p. ej. "Medial meniscus:" en su propia línea).
+
+    Convierte valores no textuales a texto para tolerar campos vacíos de CSV.
+    """
     header = None
     for line in str(text).split("\n"):
         stripped = line.strip()

@@ -205,7 +205,12 @@ GLOSSARY = {lang: [(_compile(lang, p), en) for p, en in pairs] for lang, pairs i
 
 
 def apply_glossary(text, lang):
-    """Sustituye en `text` (idioma `lang`) los términos del glosario por su forma inglesa."""
+    """Sustituye en `text` (idioma `lang`) los términos del glosario por su forma inglesa.
+
+    Los idiomas sin reglas registradas se devuelven sin cambios.
+    """
+    if not isinstance(text, str):
+        raise TypeError(f"text debe ser str; se recibió {type(text).__name__}.")
     for rx, en in GLOSSARY.get(lang, []):
         text = rx.sub(en, text)
     if lang in _SUBSTRING_LANGS:

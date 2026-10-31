@@ -47,14 +47,17 @@ def resolve_data_dir(path):
 
 def safe_lang(text):
     from langdetect import detect
+    from langdetect.lang_detect_exception import LangDetectException
     try:
         return detect(text) if isinstance(text, str) and len(text.strip()) > 20 else "na"
-    except Exception:
+    except LangDetectException:
         return "err"
 
 
 def main():
     args = parse_args()
+    if args.n_series_sample < 0:
+        raise SystemExit("--n_series_sample debe ser mayor o igual a 0.")
     args.data_dir = resolve_data_dir(args.data_dir)
     print("Carpeta de datos:", args.data_dir)
     os.makedirs(args.out_dir, exist_ok=True)
@@ -73,6 +76,8 @@ def main():
     missing = [c for c in LABELS if c not in train.columns]
     if missing:
         print("AVISO: columnas de etiqueta esperadas y no encontradas:", missing)
+    if not labels:
+        raise ValueError("train.csv no contiene ninguna de las columnas de etiquetas esperadas.")
     n_all = train[labels].notna().all(axis=1)
     print(f"\nEstudios con las {len(labels)} etiquetas (gold): {int(n_all.sum())} / {len(train)}")
     gold = train[n_all]

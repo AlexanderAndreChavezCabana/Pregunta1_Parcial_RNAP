@@ -328,7 +328,10 @@ def main():
         sys.exit("No se encontraron experimentos (metrics.json). Añadan como Input P1_Entrenamiento "
                  "y P1_Experimentos2, o ejecuten antes el paso 7.")
     print("Experimentos encontrados:", ", ".join(run_dirs))
-    metrics = {r: json.load(open(os.path.join(d, "metrics.json"))) for r, d in run_dirs.items()}
+    metrics = {}
+    for run, directory in run_dirs.items():
+        with open(os.path.join(directory, "metrics.json"), encoding="utf-8") as f:
+            metrics[run] = json.load(f)
 
     sub_path = optional_file("subset.csv", "outputs/subset/subset.csv", args.search_root)
     subset = pd.read_csv(sub_path) if sub_path else None
@@ -342,7 +345,11 @@ def main():
     prev = fig_prevalence(subset, args.out_dir) if subset is not None else None
     fig_macro(metrics, args.out_dir)
     fig_heatmap(metrics, args.out_dir)
-    best = args.best if args.best in metrics else max(metrics, key=lambda r: metrics[r]["test_macro_auc"])
+    if args.best in metrics:
+        best = args.best
+    else:
+        best = max(metrics, key=lambda r: metrics[r]["test_macro_auc"])
+        print(f"AVISO: no se encontró --best {args.best!r}; se usa {best}.")
     if subset is not None:
         fig_roc(best, run_dirs[best], subset, metrics, args.out_dir)
     if paired is not None and len(paired):

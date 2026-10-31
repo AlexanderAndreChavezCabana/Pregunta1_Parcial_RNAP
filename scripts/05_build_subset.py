@@ -77,6 +77,10 @@ def fingerprint(data_dir, study, sid):
 
 def main():
     args = parse_args()
+    if args.n_studies < 1 or args.min_pos < 0:
+        raise SystemExit("--n_studies debe ser positivo y --min_pos no puede ser negativo.")
+    if not 0 < args.val_frac < 1:
+        raise SystemExit("--val_frac debe estar entre 0 y 1, sin incluir los extremos.")
     rng = np.random.default_rng(args.seed)
     data_dir = resolve_data_dir(args.data_dir)
     weak = pd.read_csv(find_file("weak_labels.csv", args.weak))
@@ -89,6 +93,8 @@ def main():
         sag = sag[sag.Fluid_Sensitive == 1]
     has_sag = set(sag.StudyInstanceUID)
     pool = weak[~weak.StudyInstanceUID.isin(gold_ids) & weak.StudyInstanceUID.isin(has_sag)].copy()
+    if pool.empty:
+        raise ValueError("No hay estudios no gold con serie sagital disponibles para seleccionar.")
     has_fs = set(series[(series.Anatomical_Plane == "Sagittal") & (series.Fluid_Sensitive == 1)].StudyInstanceUID)
     pool["_fs"] = pool.StudyInstanceUID.isin(has_fs)
     print(f"Pool NO gold con serie sagital: {len(pool)} estudios "

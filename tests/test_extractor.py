@@ -3,6 +3,7 @@ import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from knee.extractor import extract_report
 
+# Las expectativas son estados, no etiquetas clínicas revisadas.
 CASES = [
     ("Complete tear of the anterior cruciate ligament.", {"ACL": "pos"}),
     ("The ACL is intact.", {"ACL": "neg"}),
@@ -63,5 +64,9 @@ for text, expected in CASES:
     if bad:
         fails += 1
         print("FALLA:", text, "->", bad)
-print(f"{len(CASES) - fails}/{len(CASES)} casos correctos")
+empty = extract_report("")
+if len(empty) != 12 or set(empty.values()) != {"nm"}:
+    print("FALLA: un reporte vacío debe asignar 'nm' a las 12 etiquetas")
+    fails += 1
+print(f"{len(CASES) + 1 - fails}/{len(CASES) + 1} casos correctos")
 sys.exit(1 if fails else 0)

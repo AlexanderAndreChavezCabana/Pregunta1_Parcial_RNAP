@@ -75,7 +75,11 @@ def crop_or_pad(vol, th, tw):
 
 def load_series(series_dir, n_slices, size, fov_mm=0.0):
     """Devuelve (volumen uint8 [n_slices, size, size], metadatos)."""
+    if n_slices < 1 or size < 1 or fov_mm < 0:
+        raise ValueError("n_slices y size deben ser positivos; fov_mm no puede ser negativo.")
     files = sorted(f for f in os.listdir(series_dir) if f.endswith(".dcm"))
+    if not files:
+        raise ValueError(f"No hay archivos DICOM en {series_dir}.")
     headers = [pydicom.dcmread(os.path.join(series_dir, f), stop_before_pixels=True) for f in files]
     # descartar cortes con tamaño distinto al mayoritario (localizadores, etc.)
     shapes = [(int(h.Rows), int(h.Columns)) for h in headers]
@@ -145,13 +149,23 @@ def save_qc(arr, index, path, n_studies=4, n_cols=8):
 
 def main():
     args = parse_args()
+    if args.workers < 1 or args.limit < 0:
+        raise SystemExit("--workers debe ser positivo y --limit no puede ser negativo.")
+    if args.n_slices < 1 or args.size < 1 or args.fov_mm < 0:
+        raise SystemExit("--n_slices y --size deben ser positivos; --fov_mm no puede ser negativo.")
+    planes = [p.strip() for p in args.planes.split(",") if p.strip()]
+    unknown = sorted(set(planes).difference(PLANE_COLS))
+    if unknown:
+        raise SystemExit(f"Planos desconocidos: {unknown}. Opciones válidas: {sorted(PLANE_COLS)}")
+    if not planes:
+        raise SystemExit("--planes debe incluir al menos un plano válido.")
     data_dir = resolve_data_dir(args.data_dir)
     subset = pd.read_csv(find_file("subset.csv", args.subset))
     if args.limit:
         subset = subset.groupby("split", group_keys=False).head(max(1, args.limit // 3))
     os.makedirs(args.out_dir, exist_ok=True)
 
-    for plane in [p.strip() for p in args.planes.split(",") if p.strip()]:
+    for plane in planes:
         s_col, _ = PLANE_COLS[plane]
         rows = subset[subset[s_col].notna()].reset_index(drop=True)
         print(f"\n== {plane}: {len(rows)} estudios ({rows.split.value_counts().to_dict()}) ==")
