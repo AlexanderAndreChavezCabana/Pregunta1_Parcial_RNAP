@@ -14,8 +14,17 @@ class ResolveDataDirTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as path:
             for name in ("train.csv", "train_series.csv"):
                 open(os.path.join(path, name), "w").close()
+            os.mkdir(os.path.join(path, "train_series"))
 
             self.assertEqual(resolve_data_dir(path), path)
+
+    def test_rejects_directory_missing_dicom_series(self):
+        with tempfile.TemporaryDirectory() as path:
+            for name in ("train.csv", "train_series.csv"):
+                open(os.path.join(path, name), "w").close()
+            with patch("knee.common.os.walk", return_value=[]):
+                with self.assertRaises(FileNotFoundError):
+                    resolve_data_dir(path)
 
     def test_rejects_directory_missing_train_csv(self):
         with tempfile.TemporaryDirectory() as path:
@@ -26,9 +35,10 @@ class ResolveDataDirTests(unittest.TestCase):
 
     def test_finds_complete_dataset_under_kaggle_input(self):
         with tempfile.TemporaryDirectory() as path:
+            os.mkdir(os.path.join(path, "train_series"))
             with patch(
                 "knee.common.os.walk",
-                return_value=[(path, [], ["train.csv", "train_series.csv"])],
+                return_value=[(path, ["train_series"], ["train.csv", "train_series.csv"])],
             ):
                 self.assertEqual(resolve_data_dir("missing"), path)
 
