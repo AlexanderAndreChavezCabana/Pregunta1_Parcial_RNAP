@@ -43,7 +43,7 @@ def find_file(name, local_path, search_root="/kaggle/input"):
     bajo /kaggle/input: así un notebook puede reutilizar la salida de otro notebook
     añadida como Input, sin repetir pasos costosos (p. ej. la traducción).
     """
-    if os.path.exists(local_path):
+    if os.path.isfile(local_path):
         return local_path
     skip = {"train_series", "test_series", "train_images", "test_images"}
     if os.path.isdir(search_root):
